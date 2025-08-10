@@ -13,5 +13,10 @@
         "text": "What is 5 x 6?",
         "options": ["30", "25", "35", "20"],
         "correct": "30"
+    },
+    {
+        "text": "how many father you have?",
+        "options": ["1", "2", "3", "5"],
+        "correct": "1"
     }
 ]
