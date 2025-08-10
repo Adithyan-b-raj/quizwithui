@@ -1,0 +1,17 @@
+[
+    {
+        "text": "What is the capital of France?",
+        "options": ["Paris", "London", "Berlin", "Rome"],
+        "correct": "Paris"
+    },
+    {
+        "text": "Who invented the lightbulb?",
+        "options": ["Thomas Edison", "Nikola Tesla", "Albert Einstein", "Isaac Newton"],
+        "correct": "Thomas Edison"
+    },
+    {
+        "text": "What is 5 x 6?",
+        "options": ["30", "25", "35", "20"],
+        "correct": "30"
+    }
+]
