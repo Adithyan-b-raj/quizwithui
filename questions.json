@@ -1,17 +1,28 @@
 [
     {
-        "text": "What is the capital of France?",
-        "options": ["Paris", "London", "Berlin", "Rome"],
-        "correct": "Paris"
+        "text": "Sringaravelan cinemayil Dileep inod killerine varakkan parayumbo Dileep varaukkunath arey?",
+        "options": ["Pinarayi","Umman","vs","modi"],
+        "correct": "Umman"
     },
     {
-        "text": "Who invented the lightbulb?",
-        "options": ["Thomas Edison", "Nikola Tesla", "Albert Einstein", "Isaac Newton"],
-        "correct": "Thomas Edison"
+        "text": "Annan thambi cinemayil samsarikan pattatha mammotyiyude per nth?",
+        "options": ["Achu", "Kichu", "Appu", "Pachu"],
+        "correct": "Achu"
     },
     {
-        "text": "What is 5 x 6?",
-        "options": ["30", "25", "35", "20"],
-        "correct": "30"
+        "text": "Adichu maatumbol 'estapettu edukunnu' yen ezhuthi vekunath aru?",
+        "options": ["Verum Gopalan", "Kattala Gopalan", "Divaan Coat Gopalan", "Plywood Gopalan"],
+        "correct": "Kattala Gopalan""
+    },
+    {
+        "text": "Pandippada cinemayil meenak muyaline gift kodukunath aru?",
+        "options": ["Muthupandi", "Chinnapandi", "MuthuDurai", "PandiDurai"],
+        "correct": "PandiDurai"
+    },
+    {
+        "text": "Ethil Dileep detective ayi abhinayicha cinema yeth?",
+        "options": ["C.I.D Samu", "C.I.D Moola", "C.I.D Samoosa", "C.I.D Moosa"],
+        "correct": "C.I.D Moosa"
     }
+    
 ]
