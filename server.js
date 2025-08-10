@@ -15,7 +15,7 @@ const io = new Server(server, {
 
 // config
 const PORT = process.env.PORT || 3000;
-const QUESTION_TIME_SEC = 15; // change this if you want longer/shorter
+const QUESTION_TIME_SEC = 60; // change this if you want longer/shorter
 
 // load questions
 let questions = [];
