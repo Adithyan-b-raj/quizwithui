@@ -1,0 +1,254 @@
+
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Quiz Player</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { 
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .join-btn {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      transition: all 0.3s ease;
+    }
+    .join-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+    }
+    .option-btn {
+      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+      transition: all 0.3s ease;
+    }
+    .option-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3);
+    }
+    .option-btn:disabled {
+      opacity: 0.6;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+    .timer-urgent {
+      animation: pulse 1s infinite;
+      color: #ef4444;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    .status-correct {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+    }
+    .status-wrong {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: white;
+    }
+    .status-waiting {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      color: white;
+    }
+    .question-appear {
+      animation: slideInUp 0.5s ease-out;
+    }
+    @keyframes slideInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="p-6">
+  <div class="max-w-2xl mx-auto">
+    <!-- Header -->
+    <div class="glass-card rounded-2xl p-8 mb-8 shadow-2xl text-center">
+      <h1 class="text-4xl font-bold text-gray-800 mb-2">🎮 Quiz Player</h1>
+      <p class="text-gray-600">Join the live quiz and test your knowledge!</p>
+    </div>
+
+    <!-- Join Section -->
+    <div class="glass-card rounded-2xl p-6 mb-8 shadow-xl">
+      <div class="flex items-center justify-center mb-4">
+        <div class="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
+        <h3 class="text-xl font-semibold text-gray-800">Player Registration</h3>
+      </div>
+      <div class="flex flex-col sm:flex-row gap-4 items-center justify-center">
+        <div class="flex-1 max-w-xs">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Your Name</label>
+          <input id="name" type="text" placeholder="Enter your name..." 
+                 class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all" />
+        </div>
+        <button id="joinBtn" class="join-btn text-white font-semibold py-3 px-8 rounded-xl shadow-lg mt-6 sm:mt-0">
+          🚀 Join Quiz
+        </button>
+      </div>
+    </div>
+
+    <!-- Question Section -->
+    <div id="questionBox" class="glass-card rounded-2xl p-8 shadow-xl mb-6">
+      <div class="text-center">
+        <div id="questionText" class="text-2xl font-bold text-gray-800 mb-8 min-h-[3rem] flex items-center justify-center">
+          <div class="flex items-center">
+            <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-500 mr-3"></div>
+            Waiting for next question...
+          </div>
+        </div>
+        <div id="options" class="space-y-4 mb-6"></div>
+        <div id="timer" class="text-xl font-bold"></div>
+      </div>
+    </div>
+
+    <!-- Status Section -->
+    <div id="status" class="glass-card rounded-2xl p-4 shadow-xl text-center hidden">
+      <div id="statusContent" class="font-medium"></div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const nameInput = document.getElementById("name");
+    const joinBtn = document.getElementById("joinBtn");
+    const questionText = document.getElementById("questionText");
+    const optionsDiv = document.getElementById("options");
+    const timerDiv = document.getElementById("timer");
+    const statusDiv = document.getElementById("status");
+    const statusContent = document.getElementById("statusContent");
+
+    let myName = "";
+    let questionTimerInterval = null;
+
+    joinBtn.onclick = () => {
+      const val = nameInput.value.trim();
+      if (!val) return alert("Enter your name");
+      myName = val;
+      socket.emit("join", myName);
+      
+      // Update UI
+      statusDiv.className = "glass-card rounded-2xl p-4 shadow-xl text-center status-waiting";
+      statusContent.textContent = `✅ Joined as: ${myName}`;
+      statusDiv.classList.remove("hidden");
+      
+      nameInput.disabled = true;
+      joinBtn.disabled = true;
+      joinBtn.textContent = "✅ Joined";
+      joinBtn.className = "join-btn text-white font-semibold py-3 px-8 rounded-xl shadow-lg mt-6 sm:mt-0 opacity-60";
+    };
+
+    socket.on("newQuestion", (q) => {
+      // Add animation class
+      questionText.parentElement.classList.add("question-appear");
+      
+      // Show question
+      questionText.innerHTML = `<div class="flex items-center justify-center"><span class="text-3xl mr-3">❓</span>${q.text}</div>`;
+      optionsDiv.innerHTML = "";
+      
+      q.options.forEach((o, index) => {
+        const b = document.createElement("button");
+        b.className = "option-btn w-full text-white font-semibold py-4 px-6 rounded-xl shadow-lg";
+        b.innerHTML = `<span class="text-lg mr-3">${String.fromCharCode(65 + index)}</span>${o}`;
+        b.onclick = () => {
+          if (!myName) return alert("Please join with your name first.");
+          socket.emit("submitAnswer", o);
+          
+          // Lock UI with visual feedback
+          optionsDiv.querySelectorAll("button").forEach(btn => {
+            btn.disabled = true;
+            if (btn === b) {
+              btn.className = "option-btn w-full text-white font-semibold py-4 px-6 rounded-xl shadow-lg bg-yellow-500";
+              btn.innerHTML = `<span class="text-lg mr-3">⏳</span>Answer Submitted: ${o}`;
+            }
+          });
+          
+          statusDiv.className = "glass-card rounded-2xl p-4 shadow-xl text-center status-waiting";
+          statusContent.textContent = `⏳ Answer submitted: ${o}`;
+          statusDiv.classList.remove("hidden");
+        };
+        optionsDiv.appendChild(b);
+      });
+      
+      startTimer(15);
+      
+      // Hide status or show waiting message
+      if (statusDiv.classList.contains("hidden")) {
+        statusDiv.className = "glass-card rounded-2xl p-4 shadow-xl text-center status-waiting";
+        statusContent.textContent = "⏰ Choose your answer quickly!";
+        statusDiv.classList.remove("hidden");
+      }
+    });
+
+    socket.on("yourPoints", (p) => {
+      if (p.points > 0) {
+        statusDiv.className = "glass-card rounded-2xl p-4 shadow-xl text-center status-correct";
+        statusContent.innerHTML = `<div class="flex items-center justify-center"><span class="text-2xl mr-2">🎉</span>Correct! You got ${p.points} points!</div>`;
+      } else {
+        statusDiv.className = "glass-card rounded-2xl p-4 shadow-xl text-center status-wrong";
+        statusContent.innerHTML = `<div class="flex items-center justify-center"><span class="text-2xl mr-2">❌</span>Wrong answer. Better luck next time!</div>`;
+      }
+      statusDiv.classList.remove("hidden");
+    });
+
+    socket.on("questionEnded", (payload) => {
+      statusDiv.className = "glass-card rounded-2xl p-4 shadow-xl text-center status-waiting";
+      statusContent.innerHTML = `<div class="flex items-center justify-center"><span class="text-2xl mr-2">📊</span>Question ended. Scoreboard updated!</div>`;
+      statusDiv.classList.remove("hidden");
+      
+      stopTimer();
+      
+      // Disable options with ended state
+      optionsDiv.querySelectorAll("button").forEach(btn => {
+        btn.disabled = true;
+        if (!btn.innerHTML.includes("Answer Submitted")) {
+          btn.className = "option-btn w-full text-white font-semibold py-4 px-6 rounded-xl shadow-lg opacity-40";
+        }
+      });
+    });
+
+    function startTimer(sec) {
+      stopTimer();
+      let remaining = sec;
+      updateTimerDisplay(remaining);
+      
+      questionTimerInterval = setInterval(() => {
+        remaining--;
+        updateTimerDisplay(remaining);
+        if (remaining <= 0) {
+          stopTimer();
+        }
+      }, 1000);
+    }
+
+    function updateTimerDisplay(remaining) {
+      if (remaining <= 5 && remaining > 0) {
+        timerDiv.className = "text-xl font-bold timer-urgent";
+        timerDiv.innerHTML = `<div class="flex items-center justify-center"><span class="text-2xl mr-2">⏰</span>Time left: ${remaining}s</div>`;
+      } else if (remaining > 0) {
+        timerDiv.className = "text-xl font-bold text-blue-600";
+        timerDiv.innerHTML = `<div class="flex items-center justify-center"><span class="text-xl mr-2">⏱️</span>Time left: ${remaining}s</div>`;
+      } else {
+        timerDiv.innerHTML = `<div class="flex items-center justify-center text-red-500"><span class="text-2xl mr-2">⏰</span>Time's up!</div>`;
+      }
+    }
+
+    function stopTimer() {
+      if (questionTimerInterval) {
+        clearInterval(questionTimerInterval);
+        questionTimerInterval = null;
+      }
+      timerDiv.textContent = "";
+    }
+
+    socket.on("errorMessage", (m) => {
+      alert(m);
+    });
+  </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96ce788765c27e6f',t:'MTc1NDgxODE4Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
